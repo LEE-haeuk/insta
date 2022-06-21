@@ -1,0 +1,43 @@
+SELECT *
+FROM User;
+
+SELECT name, nickName
+FROM User
+WHERE userIdx = 2;
+
+SELECT COUNT(postIdx)
+FROM Post
+WHERE status = 'ACTIVE' and userIdx = 2;
+
+SELECT name,nickName,postIdx
+FROM User
+    join Post on Post.userIdx = User.userIdx and Post.status = 'ACTIVE'
+WHERE User.userIdx = 2;
+
+SELECT name, nickName,
+    IF(postCount is null, 0, postCount) as postCount,
+    IF(followerCount is null, 0 , followerCount) as followerCount,
+    IF(followeeCount is null,0,followeeCount) as followeeCount
+FROM User
+    left join(SELECT userIdx, COUNT(postIdx) as postCount
+        FROM Post
+        WHERE status = 'ACTIVE'
+        group by userIdx) p on p.userIdx = User.userIdx
+    left join(SELECT followerIdx, COUNT(followIdx) as followerCount
+        FROM Follow
+        WHERE status = 'ACTIVE'
+        group by followerIdx) fr on fr.followerIdx = User.userIdx
+    left join(SELECT followeeIdx, COUNT(followeeIdx) as followeeCount
+        FROM Follow
+        WHERE status = 'ACTIVE'
+        group by followeeIdx) fe on fe.followeeIdx = User.userIdx
+WHERE User.userIdx = 1;
+
+SELECT p.postIdx,
+       pi.imgUrl as postImgUrl
+FROM Post as p
+    join User as u on u.userIdx = p.userIdx
+    join PostImgUrl as pi on pi.postIdx = p.postIdx and pi.status = 'ACTIVE'
+WHERE p.status = 'ACTIVE' and u.userIdx = ?
+group by p.postIdx
+order by p.createdAt desc;
